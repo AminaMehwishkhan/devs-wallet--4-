@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Environment variables (real secrets — .env.example IS meant to be committed)
+.env
+.env.local
+.env.*.local
+
+# Build output
+dist/
+build/
+
+# Uploaded files (generated at runtime, not part of the codebase)
+server/uploads/*
+!server/uploads/.gitkeep
+
+# Logs
+npm-debug.log*
+*.log
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Vercel
+.vercel
