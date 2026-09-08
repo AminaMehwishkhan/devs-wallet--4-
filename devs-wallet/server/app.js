@@ -7,7 +7,23 @@ const { errorHandler, notFound } = require('./middleware/errorHandler');
 
 const app = express();
 
-app.use(cors({ origin: process.env.CLIENT_URL || '*', credentials: true }));
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  /^https:\/\/devs-wallet-4-[a-z0-9]+\.vercel\.app$/, // any preview deploy
+];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true); // same-origin / curl / server-to-server
+    const ok = allowedOrigins.some(o =>
+      o instanceof RegExp ? o.test(origin) : o === origin
+    );
+    callback(ok ? null : new Error('Not allowed by CORS'), ok);
+  },
+  credentials: true,
+}));
+
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
