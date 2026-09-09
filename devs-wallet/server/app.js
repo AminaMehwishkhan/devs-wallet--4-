@@ -7,23 +7,25 @@ const { errorHandler, notFound } = require('./middleware/errorHandler');
 
 const app = express();
 
-const allowedOrigins = [
-  process.env.CLIENT_URL,
-  /^https:\/\/devs-wallet-4-[a-z0-9]+\.vercel\.app$/, // any preview deploy
-];
-
-app.use(cors({
+// Accept requests from the configured CLIENT_URL (your stable production domain)
+// AND from any *.vercel.app origin. Vercel gives every deployment its own unique
+// preview URL (e.g. project-name-<hash>-<team>.vercel.app) in addition to the
+// stable domain, and CLIENT_URL can only ever match one exact string — this
+// callback avoids having to update CLIENT_URL every time a new preview URL shows
+// up (e.g. after every redeploy, or when an evaluator opens a non-production link).
+const corsOptions = {
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true); // same-origin / curl / server-to-server
-    const ok = allowedOrigins.some(o =>
-      o instanceof RegExp ? o.test(origin) : o === origin
-    );
-    callback(ok ? null : new Error('Not allowed by CORS'), ok);
+    const allowedExact = process.env.CLIENT_URL;
+    const isAllowedVercelPreview = origin && /\.vercel\.app$/.test(origin);
+    if (!origin || origin === allowedExact || isAllowedVercelPreview) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
-}));
+};
 
-
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
